@@ -353,12 +353,36 @@
 
   function splitCSVLine(line){ const out=[]; let cur='', q=false; for(let i=0;i<line.length;i++){ const c=line[i]; if(c==='"'){ if(q && line[i+1]==='"'){cur+='"'; i++;} else q=!q; } else if(c===',' && !q){ out.push(cur); cur=''; } else cur+=c; } out.push(cur); return out; }
   function unq(s){ return s?.startsWith('"')&&s.endsWith('"') ? s.slice(1,-1).replace(/""/g,'"') : s }
-  function parseCSV(text){ const lines=text.split(/
-?
-/).filter(Boolean); if(lines.length<=1) return []; const head=lines[0].split(',').map(h=>h.trim()); const idx={topic:head.indexOf('topic'),ms:head.indexOf('ms'),ts:head.indexOf('ts'),sessionId:head.indexOf('sessionId')}; const out=[]; for(let i=1;i<lines.length;i++){ const cols=splitCSVLine(lines[i]); out.push({topic: unq(cols[idx.topic]), ms:+cols[idx.ms], ts: idx.ts>=0? +cols[idx.ts] : Date.now(), sessionId: idx.sessionId>=0? cols[idx.sessionId]||undefined: undefined}); } return out; }
-  function toCSV(rows){ const header='id,topic,ms,ts,sessionId
-'; const body=rows.map(r=>[r.id, esc(r.topic), r.ms, r.ts, r.sessionId||''].join(',')).join('
-'); return header+body; }
+  function parseCSV(text){
+    const lines = text.split(/\r?\n/).filter(Boolean);
+    if(lines.length <= 1) return [];
+    const head = lines[0].split(',').map(h => h.trim());
+    const idx = {
+      topic: head.indexOf('topic'),
+      ms: head.indexOf('ms'),
+      ts: head.indexOf('ts'),
+      sessionId: head.indexOf('sessionId'),
+    };
+    const out = [];
+    for(let i = 1; i < lines.length; i++){
+      const cols = splitCSVLine(lines[i]);
+      out.push({
+        topic: unq(cols[idx.topic]),
+        ms: +cols[idx.ms],
+        ts: idx.ts >= 0 ? +cols[idx.ts] : Date.now(),
+        sessionId: idx.sessionId >= 0 ? cols[idx.sessionId] || undefined : undefined,
+      });
+    }
+    return out;
+  }
+  function toCSV(rows){
+    const header = 'id,topic,ms,ts,sessionId\n';
+    const body = rows
+      .map(r => [r.id, esc(r.topic), r.ms, r.ts, r.sessionId || ''].join(','))
+      .join('\n');
+    return header + body;
+  }
+
   function esc(s){ return '"'+String(s).replace(/"/g,'""')+'"' }
 
   function makeHoldButton(btn, onConfirm){
